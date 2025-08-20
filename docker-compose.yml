@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: geracao_caldeira_db
+    environment:
+      POSTGRES_DB: geracao_caldeira
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: a1v3zbx9nLuu
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - geracao_caldeira_network
+
+  backend:
+    build: ./back
+    container_name: geracao_caldeira_backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - HOST=0.0.0.0
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=geracao_caldeira
+      - DB_USER=postgres
+      - DB_PASS=a1v3zbx9nLuu
+      - JWT_SECRET=ia-e-dados6o5ygv6rcC5PiDb4CT0g1HGJ+qpSN4dgjL6fMts7+8hxIopFI+OeSLuagOzIoR3X
+      - JWT_EXPIRES_IN=7d
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      - db
+    networks:
+      - geracao_caldeira_network
+    restart: unless-stopped
+
+  frontend:
+    build: ./front
+    container_name: geracao_caldeira_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - geracao_caldeira_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  geracao_caldeira_network:
+    driver: bridge
