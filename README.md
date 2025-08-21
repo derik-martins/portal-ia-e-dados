@@ -1,6 +1,6 @@
-# Portal IA & Dados - Geração Caldeira
+# Portal IA & Dados - Geração Caldeira - FEITO INTEIRAMENTE USANDO INTELIGÊNCIA ARTIFICIAL!!!
 
-Um portal completo para a comunidade de IA e Dados da Geração Caldeira, oferecendo recursos educacionais, interação social e desenvolvimento profissional.
+Um portal completo para a comunidade de IA e Dados da Geração Caldeira, oferecendo recursos educacionais, interação social e desenvolvimento profissional. 
 
 ## 📋 Visão Geral
 
