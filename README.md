@@ -139,10 +139,8 @@ portal-ia-e-dados/
 │   ├── .env                        # Variáveis do frontend
 │   ├── Dockerfile                  # Container do frontend
 │   └── package.json                # Dependências
-├── docker-compose.yml              # Orquestração local
-├── docker-compose.prod.yml         # Orquestração produção
-├── deploy.sh                       # Script deploy local
-└── deploy-prod.sh                  # Script deploy produção
+├── docker-compose.yml              # Orquestração
+├── deploy.sh                       # Script deploy
 ```
 
 ## ⚙️ Configuração e Instalação
@@ -174,9 +172,9 @@ NODE_ENV=production
 # Banco de dados
 DB_HOST=db
 DB_PORT=5432
-DB_NAME=geracao_caldeira
+DB_NAME=geracao_caldeira_banco
 DB_USER=postgres
-DB_PASS=sua_senha_postgres_aqui
+DB_PASS=sua_senha_banco
 
 # Autenticação
 JWT_SECRET=seu_jwt_secret_muito_seguro_aqui
@@ -202,9 +200,9 @@ VITE_API_URL=http://localhost:3001/api
 
 ```bash
 # Dar permissão aos scripts
-chmod +x deploy.sh deploy-prod.sh
+chmod +x deploy.sh
 
-# Deploy local
+# Deploy script
 ./deploy.sh
 ```
 
@@ -228,9 +226,9 @@ npm run dev
 ```bash
 # PostgreSQL via Docker
 docker run --name postgres-gc \
-  -e POSTGRES_DB=geracao_caldeira \
+  -e POSTGRES_DB=geracao_caldeira_banco \
   -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=sua_senha \
+  -e POSTGRES_PASSWORD=sua_senha_banco \
   -p 5432:5432 -d postgres:15-alpine
 ```
 
@@ -451,11 +449,9 @@ erDiagram
 ### Scripts de Deploy
 
 ```bash
-# Desenvolvimento local
+# Deploy automático (Leia o script antes)
 ./deploy.sh
 
-# Produção
-./deploy-prod.sh
 ```
 
 ### Comandos Docker Úteis
@@ -471,10 +467,10 @@ docker-compose restart frontend
 
 # Acessar container
 docker-compose exec backend bash
-docker-compose exec db psql -U postgres -d geracao_caldeira
+docker-compose exec db psql -U postgres -d geracao_caldeira_banco
 
 # Backup do banco
-docker-compose exec db pg_dump -U postgres geracao_caldeira > backup.sql
+docker-compose exec db pg_dump -U postgres geracao_caldeira_banco > backup.sql
 ```
 
 ## 📊 Monitoramento
@@ -511,15 +507,7 @@ docker-compose exec db pg_dump -U postgres geracao_caldeira > backup.sql
 - [ ] Fórum da comunidade
 - [ ] Integração Discord completa
 - [ ] Sistema de notificações
-- [ ] PWA (Progressive Web App)
-- [ ] Modo offline
 
-### 📋 Roadmap
-- [ ] API mobile
-- [ ] Analytics dashboard
-- [ ] Sistema de badges avançado
-- [ ] Integração com plataformas de código
-- [ ] Sistema de mentoria
 
 ## 🤝 Contribuição
 
@@ -531,13 +519,4 @@ Para contribuir com o projeto:
 4. Push para a branch
 5. Abra um Pull Request
 
-## 📞 Suporte
-
-Para suporte técnico ou dúvidas:
-- Email: suporte@geracaocaldeira.com
-- Discord: Geração Caldeira - IA e Dados
-- Issues: GitHub Issues do repositório
-
----
-
-**Desenvolvido com ❤️ pela comunidade Geração Caldeira**
+**Desenvolvido com ❤️ pela Trilha de IA e Dados do Geração Caldeira 2025**
