@@ -5,9 +5,9 @@ services:
     image: postgres:15-alpine
     container_name: geracao_caldeira_db
     environment:
-      POSTGRES_DB: geracao_caldeira
+      POSTGRES_DB: geracao_caldeira_banco
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: a1v3zbx9nLuu
+      POSTGRES_PASSWORD: sua_senha_banco
     ports:
       - "5432:5432"
     volumes:
@@ -26,13 +26,13 @@ services:
       - HOST=0.0.0.0
       - DB_HOST=db
       - DB_PORT=5432
-      - DB_NAME=geracao_caldeira
+      - DB_NAME=geracao_caldeira_banco
       - DB_USER=postgres
-      - DB_PASS=a1v3zbx9nLuu
-      - JWT_SECRET=ia-e-dados6o5ygv6rcC5PiDb4CT0g1HGJ+qpSN4dgjL6fMts7+8hxIopFI+OeSLuagOzIoR3X
+      - DB_PASS=sua_senha_banco
+      - JWT_SECRET=ia-e-dadosxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       - JWT_EXPIRES_IN=7d
       - CORS_ORIGIN=http://localhost:3000
-      - OPENROUTER_API_KEY=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
+      - OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     depends_on:
       - db
     networks:
