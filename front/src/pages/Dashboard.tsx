@@ -17,13 +17,13 @@ const Dashboard: React.FC<DashboardProps> = ({ currentView, onNavigate }) => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex">
+    <div className="h-screen bg-white flex overflow-hidden">
       <Sidebar 
         currentView={currentView}
         onNavigate={onNavigate}
         onLogout={handleLogout}
       />
-      <ContainerPrincipal currentView={currentView} />
+      <ContainerPrincipal currentView={currentView} onNavigate={onNavigate} />
     </div>
   );
 };

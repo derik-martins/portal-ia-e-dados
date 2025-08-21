@@ -7,6 +7,7 @@ interface AuthContextData {
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
+  updateUser: (userData: User) => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
 }
@@ -83,6 +84,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setToken(null);
   };
 
+  const updateUser = (userData: User) => {
+    setUser(userData);
+    localStorage.setItem('user_data', JSON.stringify(userData));
+  };
+
   const isAuthenticated = !!user && !!token;
   const isAdmin = user?.role === 'admin';
 
@@ -93,6 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       loading,
       login,
       logout,
+      updateUser,
       isAuthenticated,
       isAdmin,
     }}>

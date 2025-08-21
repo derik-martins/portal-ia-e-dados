@@ -4,7 +4,7 @@ import { Evento } from '../../../services/api';
 
 interface FormularioEventoProps {
   evento?: Evento;
-  onSave: (evento: Omit<Evento, 'id' | 'created_by' | 'created_by_name' | 'created_at' | 'updated_at'>) => Promise<void>;
+  onSave: (evento: Omit<Evento, 'id' | 'created_by' | 'created_by_name' | 'created_at' | 'updated_at'>, updateSimilar?: boolean) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -24,6 +24,7 @@ const FormularioEvento: React.FC<FormularioEventoProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [updateSimilar, setUpdateSimilar] = useState(false);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -62,7 +63,7 @@ const FormularioEvento: React.FC<FormularioEventoProps> = ({
         start_date: new Date(formData.start_date).toISOString(),
         end_date: new Date(formData.end_date).toISOString(),
         event_type: formData.event_type
-      });
+      }, updateSimilar);
     } catch (error) {
       console.error('Erro ao salvar evento:', error);
     }
@@ -181,6 +182,23 @@ const FormularioEvento: React.FC<FormularioEventoProps> = ({
             />
             {errors.end_date && <p className="text-red-500 text-xs mt-1">{errors.end_date}</p>}
           </div>
+
+          {/* Opção para atualizar aulas similares (apenas para edição de aulas) */}
+          {evento && evento.event_type === 'aula' && (
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="updateSimilar"
+                checked={updateSimilar}
+                onChange={(e) => setUpdateSimilar(e.target.checked)}
+                className="rounded border-gray-300 text-[#39FF14] focus:ring-[#39FF14]"
+                disabled={loading}
+              />
+              <label htmlFor="updateSimilar" className="text-sm text-gray-700">
+                Aplicar alterações a todas as aulas similares (mesmo título e tipo)
+              </label>
+            </div>
+          )}
 
           {/* Botões */}
           <div className="flex gap-3 pt-4">

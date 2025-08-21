@@ -11,8 +11,8 @@ async function createTestUser() {
     console.log('Conectado com sucesso!');
 
     const userData = {
-      email: 'admin@geracao-caldeira.com',
-      password: '123456',
+      email: 'derik@iaedados',
+      password: 'orienti@14',
       name: 'Administrador',
       role: 'admin'
     };

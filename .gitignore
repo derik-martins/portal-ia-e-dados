@@ -1,13 +1,79 @@
-# Dependencies
+# ==============================================
+# PORTAL IA & DADOS - GERAÇÃO CALDEIRA
+# ==============================================
+
+# Node.js Dependencies
 node_modules/
 */node_modules/
+back/node_modules/
+front/node_modules/
+
+# Package Locks (manter apenas package.json)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ==============================================
+# ARQUIVOS DE AMBIENTE E CONFIGURAÇÃO SENSÍVEL
+# ==============================================
+
+# Environment files (NUNCA commitar)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.prod
+back/.env
+front/.env
+front/.env.production
+
+# Arquivos de exemplo de configuração (manter apenas .env.example)
+.env.development
+.env.staging
+
+# ==============================================
+# SCRIPTS DE DEPLOY E UTILITÁRIOS
+# ==============================================
+
+# Scripts de deploy
+deploy.sh
+deploy-prod.sh
+restart-frontend.sh
+install-chat.sh
+
+# Scripts utilitários do backend
+back/check-admin-user.js
+back/create-test-user.js
+back/create-test-user-local.js
+back/fix-chat-tables.js
+back/inserir-insignias.js
+back/inserir-insignias-exemplo.js
+
+# ==============================================
+# DOCKER E CONTAINERS
+# ==============================================
+
+# Docker Compose para produção
+docker-compose.prod.yml
+
+# Docker volumes e dados
+postgres_data/
+mysql_data/
+mongodb_data/
+
+# ==============================================
+# LOGS E DADOS TEMPORÁRIOS
+# ==============================================
 
 # Logs
 *.log
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
+.pnpm-debug.log*
 
 # Runtime data
 pids
@@ -15,42 +81,202 @@ pids
 *.seed
 *.pid.lock
 
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# ==============================================
+# CACHE E TEMPORÁRIOS
+# ==============================================
+
 # Optional npm cache directory
 .npm
 
 # Optional eslint cache
 .eslintcache
 
-# dotenv environment variables file
-#.env
-#.env.local
-#.env.development.local
-#.env.test.local
-#.env.production.local
-#.env.prod
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
 
-# Docker
-#.dockerignore
+# Optional REPL history
+.node_repl_history
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# Yarn Integrity file
+.yarn-integrity
 
-# OS
-.DS_Store
-Thumbs.db
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# ==============================================
+# BUILD E DISTRIBUIÇÃO
+# ==============================================
 
 # Build outputs
 dist/
 build/
-coverage/
+out/
+.next/
+.nuxt/
+.vuepress/dist
+.serverless/
+.fusebox/
 
-# Database
+# Webpack
+.webpack/
+
+# Rollup
+.rollup.cache/
+
+# SvelteKit build / generate output
+.svelte-kit
+
+# ==============================================
+# UPLOADS E MÍDIA
+# ==============================================
+
+# Uploads do usuário (manter estrutura, ignorar conteúdo)
+back/uploads/*
+!back/uploads/.gitkeep
+uploads/*
+!uploads/.gitkeep
+
+# Arquivos de mídia grandes
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+
+# ==============================================
+# BANCO DE DADOS
+# ==============================================
+
+# Database files
 *.sqlite
+*.sqlite3
 *.db
+database.json
 
-# Temporary files
+# Database backups
+*.sql
+*.dump
+backup*.sql
+database_backup*
+
+# ==============================================
+# IDE E EDITORES
+# ==============================================
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ==============================================
+# SISTEMA OPERACIONAL
+# ==============================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==============================================
+# ARQUIVOS DE DOCUMENTAÇÃO ESPECÍFICOS
+# ==============================================
+
+# READMEs específicos (manter apenas README.md principal)
+RSS_FEED_README.md
+CHAT_SETUP.md
+
+# ==============================================
+# OUTROS
+# ==============================================
+
+# Temporary folders
 tmp/
 temp/
+.tmp/
+
+# Sass cache
+.sass-cache/
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional stylelint cache
+.stylelintcache
+
+# Storybook build outputs
+.out
+.storybook-out
+storybook-static
+
+# Temporary folders
+tmp/
+temp/
+.cache/
+
+# Misc
+.env.backup
+.vscode-test

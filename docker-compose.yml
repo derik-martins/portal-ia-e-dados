@@ -32,6 +32,7 @@ services:
       - JWT_SECRET=ia-e-dados6o5ygv6rcC5PiDb4CT0g1HGJ+qpSN4dgjL6fMts7+8hxIopFI+OeSLuagOzIoR3X
       - JWT_EXPIRES_IN=7d
       - CORS_ORIGIN=http://localhost:3000
+      - OPENROUTER_API_KEY=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
     depends_on:
       - db
     networks:

@@ -46,9 +46,13 @@ router.get('/:id', authMiddleware, EventoController.getById);
 // Rotas administrativas (apenas admins)
 router.post('/', authMiddleware, adminMiddleware, eventoValidation, EventoController.create);
 router.put('/:id', authMiddleware, adminMiddleware, eventoValidation, EventoController.update);
+router.put('/:id/similar', authMiddleware, adminMiddleware, eventoValidation, EventoController.updateSimilarEvents);
 router.delete('/:id', authMiddleware, adminMiddleware, EventoController.delete);
 
 // Rota especial para criar aulas recorrentes
 router.post('/recurring/classes', authMiddleware, adminMiddleware, EventoController.createRecurringClasses);
+
+// Rota especial para deletar aulas de 2024
+router.delete('/classes/2024', authMiddleware, adminMiddleware, EventoController.delete2024Classes);
 
 module.exports = router;

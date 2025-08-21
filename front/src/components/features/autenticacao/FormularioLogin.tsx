@@ -81,12 +81,6 @@ const FormularioLogin: React.FC<FormularioLoginProps> = ({ onLogin }) => {
             Esqueceu sua senha?
           </a>
         </div>
-
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
-          <strong>Credenciais de teste:</strong><br />
-          Email: admin@geracao-caldeira.com<br />
-          Senha: 123456
-        </div>
       </form>
     </div>
   );

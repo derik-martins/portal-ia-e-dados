@@ -65,11 +65,15 @@ const VisualizacaoCalendario: React.FC = () => {
   };
 
   // Gerenciar eventos (admin)
-  const handleSaveEvent = async (eventData: Omit<Evento, 'id' | 'created_by' | 'created_by_name' | 'created_at' | 'updated_at'>) => {
+  const handleSaveEvent = async (eventData: Omit<Evento, 'id' | 'created_by' | 'created_by_name' | 'created_at' | 'updated_at'>, updateSimilar?: boolean) => {
     setFormLoading(true);
     try {
       if (editingEvent) {
-        await ApiService.atualizarEvento(editingEvent.id, eventData);
+        if (updateSimilar) {
+          await ApiService.atualizarEventosSimilares(editingEvent.id, { ...eventData, updateSimilar: true });
+        } else {
+          await ApiService.atualizarEvento(editingEvent.id, eventData);
+        }
       } else {
         await ApiService.criarEvento(eventData);
       }
