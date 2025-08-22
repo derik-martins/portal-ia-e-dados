@@ -1,6 +1,9 @@
 # Portal IA & Dados - Geração Caldeira - FEITO INTEIRAMENTE USANDO INTELIGÊNCIA ARTIFICIAL!!!
 
-Um portal completo para a comunidade de IA e Dados da Geração Caldeira, oferecendo recursos educacionais, interação social e desenvolvimento profissional. 
+Um portal completo para a comunidade de IA e Dados da Geração Caldeira, oferecendo recursos educacionais, interação social e desenvolvimento profissional.
+
+> [!NOTE]
+> Esse projeto a partir da Commit 8/9, teve configurações de monitoramento no grafana, e configuração em ambos, é um projeto open-source, qualquer dúvida é so chamar.
 
 ## 📋 Visão Geral
 
