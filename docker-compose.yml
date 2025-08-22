@@ -5,9 +5,9 @@ services:
     image: postgres:15-alpine
     container_name: geracao_caldeira_db
     environment:
-      POSTGRES_DB: geracao_caldeira
+      POSTGRES_DB: geracao_caldeira_banco
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: a1v3zbx9nLuu
+      POSTGRES_PASSWORD: sua_senha_banco
     ports:
       - "127.0.0.1:5432:5432"  # Bind apenas no localhost para segurança
     volumes:
