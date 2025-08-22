@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import ApiService from '../../../services/api';
 import Card from '../../ui/Card';
@@ -21,25 +21,74 @@ interface PerfilUsuarioProps {
 }
 
 const PerfilUsuario: React.FC<PerfilUsuarioProps> = ({ onClose }) => {
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout, updateUser, refreshUserData } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    bio: user?.bio || '',
-    linkedin_url: user?.linkedin_url || '',
-    github_url: user?.github_url || '',
-    website_url: user?.website_url || '',
-    location: user?.location || '',
-    phone: user?.phone || '',
-    interests: user?.interests || [],
-    skills: user?.skills || []
+    name: '',
+    bio: '',
+    linkedin_url: '',
+    github_url: '',
+    website_url: '',
+    location: '',
+    phone: '',
+    interests: [] as string[],
+    skills: [] as string[]
   });
   const [newSkill, setNewSkill] = useState('');
   const [newInterest, setNewInterest] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  // Carregar dados atualizados quando o componente for montado
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (user) {
+        try {
+          await refreshUserData();
+        } catch (error) {
+          console.error('Erro ao carregar dados iniciais do perfil:', error);
+        }
+      }
+    };
+    
+    loadUserData();
+  }, []); // Executar apenas uma vez quando o componente for montado
+
+  // Sincronizar formData com dados do usuário quando eles mudarem ou quando entrar em modo de edição
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        bio: user.bio || '',
+        linkedin_url: user.linkedin_url || '',
+        github_url: user.github_url || '',
+        website_url: user.website_url || '',
+        location: user.location || '',
+        phone: user.phone || '',
+        interests: user.interests || [],
+        skills: user.skills || []
+      });
+    }
+  }, [user]);
+
+  // Garantir que os dados sejam recarregados quando entrar em modo de edição
+  useEffect(() => {
+    if (isEditing && user) {
+      setFormData({
+        name: user.name || '',
+        bio: user.bio || '',
+        linkedin_url: user.linkedin_url || '',
+        github_url: user.github_url || '',
+        website_url: user.website_url || '',
+        location: user.location || '',
+        phone: user.phone || '',
+        interests: user.interests || [],
+        skills: user.skills || []
+      });
+    }
+  }, [isEditing, user]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -250,18 +299,53 @@ const PerfilUsuario: React.FC<PerfilUsuarioProps> = ({ onClose }) => {
 
   const cancelEdit = () => {
     setIsEditing(false);
-    setFormData({
-      name: user?.name || '',
-      bio: user?.bio || '',
-      linkedin_url: user?.linkedin_url || '',
-      github_url: user?.github_url || '',
-      website_url: user?.website_url || '',
-      location: user?.location || '',
-      phone: user?.phone || '',
-      interests: user?.interests || [],
-      skills: user?.skills || []
-    });
+    // Restaurar dados originais do usuário
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        bio: user.bio || '',
+        linkedin_url: user.linkedin_url || '',
+        github_url: user.github_url || '',
+        website_url: user.website_url || '',
+        location: user.location || '',
+        phone: user.phone || '',
+        interests: user.interests || [],
+        skills: user.skills || []
+      });
+    }
     setMessage('');
+  };
+
+  const startEditing = async () => {
+    setLoading(true);
+    
+    try {
+      // Atualizar dados do usuário antes de entrar no modo de edição
+      await refreshUserData();
+      
+      // Garantir que os dados estão atualizados antes de entrar no modo de edição
+      if (user) {
+        setFormData({
+          name: user.name || '',
+          bio: user.bio || '',
+          linkedin_url: user.linkedin_url || '',
+          github_url: user.github_url || '',
+          website_url: user.website_url || '',
+          location: user.location || '',
+          phone: user.phone || '',
+          interests: user.interests || [],
+          skills: user.skills || []
+        });
+      }
+      
+      setIsEditing(true);
+      setMessage('');
+    } catch (error) {
+      console.error('Erro ao carregar dados do perfil:', error);
+      setMessage('Erro ao carregar dados do perfil');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!user) {
@@ -328,14 +412,26 @@ const PerfilUsuario: React.FC<PerfilUsuarioProps> = ({ onClose }) => {
                   size="lg"
                   className="border-4 border-white shadow-lg w-24 h-24 lg:w-28 lg:h-28 bg-white"
                 />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={loading}
-                  className="absolute bottom-0 right-0 p-1.5 lg:p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors shadow-lg z-10"
-                  title="Alterar foto de perfil"
-                >
-                  <Camera size={16} className="lg:w-4 lg:h-4" />
-                </button>
+                <div className="absolute bottom-0 right-0 flex gap-1">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={loading}
+                    className="p-1.5 lg:p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition-colors shadow-lg z-10"
+                    title="Alterar foto de perfil"
+                  >
+                    <Camera size={16} className="lg:w-4 lg:h-4" />
+                  </button>
+                  {user.profile_image && (
+                    <button
+                      onClick={handleRemoveImage}
+                      disabled={loading}
+                      className="p-1.5 lg:p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-lg z-10"
+                      title="Remover foto de perfil"
+                    >
+                      <X size={16} className="lg:w-4 lg:h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -702,7 +798,7 @@ const PerfilUsuario: React.FC<PerfilUsuarioProps> = ({ onClose }) => {
               ) : (
                 <>
                   <Botao
-                    onClick={() => setIsEditing(true)}
+                    onClick={startEditing}
                     disabled={loading}
                     className="flex-1 py-3"
                   >

@@ -9,52 +9,263 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: a1v3zbx9nLuu
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"  # Bind apenas no localhost para segurança
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - geracao_caldeira_network
+    restart: unless-stopped
+    # Configurações de segurança do PostgreSQL
+    command: |
+      postgres 
+      -c log_statement=all 
+      -c log_destination=stderr 
+      -c logging_collector=on
+      -c log_connections=on
+      -c log_disconnections=on
+      -c log_line_prefix='%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
 
   backend:
     build: ./back
     container_name: geracao_caldeira_backend
     ports:
-      - "3001:3001"
-    environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - HOST=0.0.0.0
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=geracao_caldeira
-      - DB_USER=postgres
-      - DB_PASS=a1v3zbx9nLuu
-      - JWT_SECRET=ia-e-dados6o5ygv6rcC5PiDb4CT0g1HGJ+qpSN4dgjL6fMts7+8hxIopFI+OeSLuagOzIoR3X
-      - JWT_EXPIRES_IN=7d
-      - CORS_ORIGIN=http://localhost:3000
-      - OPENROUTER_API_KEY=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
+      - "127.0.0.1:3001:3001"  # Bind apenas no localhost
+    env_file:
+      - ./back/.env
     depends_on:
       - db
     networks:
       - geracao_caldeira_network
     restart: unless-stopped
+    # Configurações de segurança do container
+    read_only: false
+    tmpfs:
+      - /tmp:size=100M,noexec,nosuid,nodev
+    volumes:
+      - ./back/uploads:/app/uploads
+    # Limites de recursos
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   frontend:
     build: ./front
     container_name: geracao_caldeira_frontend
     ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
+      - "80:80"
+      - "443:443"
+    env_file:
+      - ./front/.env
     depends_on:
       - backend
     networks:
       - geracao_caldeira_network
     restart: unless-stopped
+    volumes:
+      # Para certificados SSL (será criado quando configurar Let's Encrypt)
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+      # Para logs do Nginx
+      - ./logs/nginx:/var/log/nginx
+      # Para autenticação do monitoramento
+      - ./front/.htpasswd:/etc/nginx/.htpasswd:ro
+      # Configuração do nginx atualizada
+      - ./front/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    # Limites de recursos
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Serviço do Certbot para renovação automática de SSL
+  certbot:
+    image: certbot/certbot
+    container_name: geracao_caldeira_certbot
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/www/certbot:/var/www/certbot
+    command: renew --quiet
+    profiles: ["ssl"]
+    restart: unless-stopped
+
+  # ============== MONITORING STACK ==============
+  # Prometheus - Coleta de métricas
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: geracao_caldeira_prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - geracao_caldeira_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # Grafana - Dashboards e visualização
+  grafana:
+    image: grafana/grafana:latest
+    container_name: geracao_caldeira_grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123!
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_SERVER_PROTOCOL=http
+      - GF_SERVER_DOMAIN=monitor.polenteiroscaldeira.com.br
+      - GF_SERVER_ROOT_URL=https://monitor.polenteiroscaldeira.com.br/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./monitoring/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - geracao_caldeira_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # cAdvisor - Monitoramento de containers
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: geracao_caldeira_cadvisor
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    networks:
+      - geracao_caldeira_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.15'
+
+  # Node Exporter - Métricas do sistema
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: geracao_caldeira_node_exporter
+    ports:
+      - "127.0.0.1:9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - geracao_caldeira_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+
+  # PostgreSQL Exporter - Métricas do banco
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: geracao_caldeira_postgres_exporter
+    ports:
+      - "127.0.0.1:9187:9187"
+    environment:
+      DATA_SOURCE_NAME: postgresql://postgres:a1v3zbx9nLuu@db:5432/geracao_caldeira?sslmode=disable
+    depends_on:
+      - db
+    networks:
+      - geracao_caldeira_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+
+  # Nginx Exporter - Métricas do Nginx
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: geracao_caldeira_nginx_exporter
+    ports:
+      - "127.0.0.1:9113:9113"
+    command:
+      - '-nginx.scrape-uri=http://frontend:80/nginx_status'
+    depends_on:
+      - frontend
+    networks:
+      - geracao_caldeira_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 32M
+          cpus: '0.05'
 
 volumes:
   postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/postgres
+  prometheus_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/prometheus
+  grafana_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/grafana
 
 networks:
   geracao_caldeira_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

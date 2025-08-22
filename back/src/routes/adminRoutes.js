@@ -1,6 +1,6 @@
 const express = require('express');
 const AdminUserController = require('../controllers/AdminUserController');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/authMiddleware');
 const adminMiddleware = require('../middleware/adminMiddleware');
 const { 
   adminCreateUserValidation, 

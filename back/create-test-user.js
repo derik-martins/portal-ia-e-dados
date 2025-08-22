@@ -11,7 +11,7 @@ async function createTestUser() {
     console.log('Conectado com sucesso!');
 
     const userData = {
-      email: 'derik@iaedados',
+      email: 'derik@iaedados.com',
       password: 'orienti@14',
       name: 'Administrador',
       role: 'admin'

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Award, Plus, Edit, Trash2, Save, X, Users, Star, Eye, EyeOff, Palette, Link } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Award, Plus, Edit, Trash2, Save, X, Users, Star, Eye, EyeOff, Palette, Upload, Image } from 'lucide-react';
 import ApiService, { Insignia, InsigniaFormData } from '../../../services/api';
 import Botao from '../../ui/Botao';
 import Card from '../../ui/Card';
@@ -19,6 +19,9 @@ const GerenciamentoInsignias: React.FC = () => {
     ativo: true
   });
   const [incluirInativas, setIncluirInativas] = useState(false);
+  const [imagemPreview, setImagemPreview] = useState<string>('');
+  const [uploadingImagem, setUploadingImagem] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     carregarInsignias();
@@ -47,6 +50,7 @@ const GerenciamentoInsignias: React.FC = () => {
       cor: '#3B82F6',
       ativo: true
     });
+    setImagemPreview('');
     setEditingId(null);
     setShowForm(false);
   };
@@ -94,6 +98,7 @@ const GerenciamentoInsignias: React.FC = () => {
       cor: insignia.cor,
       ativo: insignia.ativo
     });
+    setImagemPreview(insignia.imagem_url || '');
     setEditingId(insignia.id);
     setShowForm(true);
   };
@@ -127,6 +132,66 @@ const GerenciamentoInsignias: React.FC = () => {
               type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
               value
     }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Tipo de arquivo não permitido. Apenas imagens são aceitas.');
+      return;
+    }
+
+    // Validar tamanho (5MB máximo)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Imagem muito grande. Tamanho máximo: 5MB');
+      return;
+    }
+
+    try {
+      setUploadingImagem(true);
+      
+      // Criar preview local
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImagemPreview(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // Fazer upload
+      const response = await ApiService.uploadImagemInsignia(file);
+      
+      if (response.success && response.data) {
+        setFormData(prev => ({
+          ...prev,
+          imagem_url: response.data!.imageUrl
+        }));
+        alert('Imagem enviada com sucesso!');
+      } else {
+        alert(response.message || 'Erro ao enviar imagem');
+        setImagemPreview('');
+      }
+    } catch (error) {
+      console.error('Erro ao enviar imagem:', error);
+      alert('Erro ao enviar imagem');
+      setImagemPreview('');
+    } finally {
+      setUploadingImagem(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({
+      ...prev,
+      imagem_url: ''
+    }));
+    setImagemPreview('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -266,17 +331,54 @@ const GerenciamentoInsignias: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <Link size={16} />
-                  URL da Imagem
+                  <Image size={16} />
+                  Imagem da Insígnia
                 </label>
+                
+                {/* Input de upload */}
                 <input
-                  type="url"
-                  name="imagem_url"
-                  value={formData.imagem_url || ''}
-                  onChange={handleInputChange}
-                  placeholder="https://exemplo.com/imagem.png"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#39FF14] focus:border-[#39FF14] transition-colors"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
                 />
+                
+                {/* Área de preview e upload */}
+                <div className="space-y-3">
+                  {(imagemPreview || formData.imagem_url) && (
+                    <div className="relative">
+                      <img
+                        src={imagemPreview || formData.imagem_url}
+                        alt="Preview da insígnia"
+                        className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  )}
+                  
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingImagem}
+                    className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#39FF14] hover:bg-gray-50 transition-colors flex flex-col items-center gap-2 text-gray-600 hover:text-gray-800"
+                  >
+                    <Upload size={24} />
+                    <span className="text-sm font-medium">
+                      {uploadingImagem ? 'Enviando...' : 
+                       (imagemPreview || formData.imagem_url) ? 'Alterar Imagem' : 'Selecionar Imagem'}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      PNG, JPG, GIF até 5MB
+                    </span>
+                  </button>
+                </div>
               </div>
               
               <div className="space-y-2">

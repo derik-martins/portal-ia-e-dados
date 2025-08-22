@@ -44,12 +44,65 @@ class ProfileController {
       } = req.body;
       const userId = req.userId;
 
+      // Debug: Log dos dados recebidos
+      console.log('Dados recebidos no ProfileController:');
+      console.log('interests:', interests, 'Type:', typeof interests);
+      console.log('skills:', skills, 'Type:', typeof skills);
+
       if (!name || name.trim() === '') {
         return res.status(400).json({
           success: false,
           message: 'Nome é obrigatório'
         });
       }
+
+      // Processar interests e skills para garantir que sejam arrays válidos
+      let processedInterests = [];
+      let processedSkills = [];
+
+      if (interests) {
+        if (Array.isArray(interests)) {
+          processedInterests = interests;
+        } else if (typeof interests === 'object') {
+          // Se vier como objeto {"0": "valor1", "1": "valor2"}, converter para array
+          processedInterests = Object.values(interests);
+        } else if (typeof interests === 'string') {
+          try {
+            const parsed = JSON.parse(interests);
+            if (Array.isArray(parsed)) {
+              processedInterests = parsed;
+            } else if (typeof parsed === 'object') {
+              processedInterests = Object.values(parsed);
+            }
+          } catch (e) {
+            processedInterests = [interests];
+          }
+        }
+      }
+
+      if (skills) {
+        if (Array.isArray(skills)) {
+          processedSkills = skills;
+        } else if (typeof skills === 'object') {
+          // Se vier como objeto {"0": "valor1", "1": "valor2"}, converter para array
+          processedSkills = Object.values(skills);
+        } else if (typeof skills === 'string') {
+          try {
+            const parsed = JSON.parse(skills);
+            if (Array.isArray(parsed)) {
+              processedSkills = parsed;
+            } else if (typeof parsed === 'object') {
+              processedSkills = Object.values(parsed);
+            }
+          } catch (e) {
+            processedSkills = [skills];
+          }
+        }
+      }
+
+      console.log('Arrays processados:');
+      console.log('processedInterests:', processedInterests);
+      console.log('processedSkills:', processedSkills);
 
       // Validar URLs se fornecidas
       const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
@@ -81,8 +134,8 @@ class ProfileController {
         linkedin_url: linkedin_url ? linkedin_url.trim() : null,
         github_url: github_url ? github_url.trim() : null,
         website_url: website_url ? website_url.trim() : null,
-        interests: interests || [],
-        skills: skills || [],
+        interests: processedInterests,
+        skills: processedSkills,
         location: location ? location.trim() : null,
         phone: phone ? phone.trim() : null
       });

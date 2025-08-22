@@ -63,8 +63,12 @@ class DicaController {
 
   static async criarDica(req, res) {
     try {
+      console.log('[DEBUG DICA] Iniciando criação de dica');
+      console.log('[DEBUG DICA] Body:', req.body);
+      
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.log('[DEBUG DICA] Erros de validação encontrados:', errors.array());
         return res.status(400).json({
           success: false,
           message: 'Dados inválidos',
@@ -82,16 +86,40 @@ class DicaController {
         tags
       } = req.body;
 
+      console.log('[DEBUG DICA] userId:', req.userId);
+
+      // Processar tags: converter objeto para array se necessário
+      let processedTags = [];
+      if (tags) {
+        if (Array.isArray(tags)) {
+          processedTags = tags;
+        } else if (typeof tags === 'object') {
+          processedTags = Object.values(tags).filter(tag => tag && typeof tag === 'string');
+        }
+      }
+
+      // Processar conteúdo: garantir que seja um objeto válido
+      let processedConteudo = conteudo;
+      if (typeof conteudo === 'object' && conteudo.blocks && typeof conteudo.blocks === 'object' && !Array.isArray(conteudo.blocks)) {
+        // Converter objeto blocks para array se necessário
+        processedConteudo = {
+          ...conteudo,
+          blocks: Object.values(conteudo.blocks)
+        };
+      }
+
       const dadosDica = {
         titulo,
         categoria,
         descricao_breve,
-        conteudo,
+        conteudo: processedConteudo,
         tempo_leitura: tempo_leitura || 1,
         imagem_header: imagem_header || null,
-        tags: tags || [],
+        tags: processedTags,
         autor_id: req.userId
       };
+
+      console.log('[DEBUG DICA] Dados preparados para inserção');
 
       const novaDica = await DicaModel.criar(dadosDica);
       

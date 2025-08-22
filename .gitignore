@@ -44,7 +44,6 @@ install-chat.sh
 
 # Scripts utilitários do backend
 back/check-admin-user.js
-back/create-test-user.js
 back/create-test-user-local.js
 back/fix-chat-tables.js
 back/inserir-insignias.js
@@ -280,3 +279,26 @@ temp/
 # Misc
 .env.backup
 .vscode-test
+
+switch-config.sh
+setup-ssl.sh
+setup-monitoring.sh
+RESUMO_IMPLEMENTACAO.md
+quick-start.sh
+MONITORING_README.md
+monitor.sh
+GUIA_SEGURANCA_DOMINIO.md
+expand-ssl.sh
+docker-compose.yml.backup
+check-ports.sh
+front/.htpasswd
+front/nginx.conf
+back/test-login.js
+back/test-openrouter.js
+logs/
+monitoring/
+data/
+backups/
+front/nginx-bkps
+front/proxy_params
+setup-security.sh

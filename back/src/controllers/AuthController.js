@@ -1,6 +1,7 @@
 const UserModel = require('../models/UserModel');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
+const { recordAuthAttempt } = require('../middleware/metricsMiddleware');
 
 class AuthController {
   static async register(req, res) {
@@ -17,6 +18,7 @@ class AuthController {
       
       const existingUser = await UserModel.findByEmail(email);
       if (existingUser) {
+        recordAuthAttempt('register', 'failed');
         return res.status(400).json({
           success: false,
           message: 'Email já cadastrado'
@@ -24,6 +26,7 @@ class AuthController {
       }
 
       const user = await UserModel.create({ email, password, name });
+      recordAuthAttempt('register', 'success');
       
       const token = jwt.sign(
         { userId: user.id, email: user.email, role: user.role },
@@ -69,6 +72,7 @@ class AuthController {
       
       const user = await UserModel.findByEmail(email);
       if (!user) {
+        recordAuthAttempt('login', 'failed');
         return res.status(401).json({
           success: false,
           message: 'Email ou senha inválidos'
@@ -77,6 +81,7 @@ class AuthController {
 
       const isPasswordValid = await UserModel.verifyPassword(password, user.password);
       if (!isPasswordValid) {
+        recordAuthAttempt('login', 'failed');
         return res.status(401).json({
           success: false,
           message: 'Email ou senha inválidos'
@@ -88,6 +93,8 @@ class AuthController {
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN }
       );
+
+      recordAuthAttempt('login', 'success');
 
       res.status(200).json({
         success: true,

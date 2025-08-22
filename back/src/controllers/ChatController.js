@@ -1,5 +1,6 @@
 const ConversaModel = require('../models/ConversaModel');
 const AIService = require('../services/aiService');
+const { recordChatMessage } = require('../middleware/metricsMiddleware');
 
 class ChatController {
   static async inicializarTabelas(req, res) {
@@ -146,6 +147,7 @@ class ChatController {
       // Adicionar mensagem do usuário
       console.log('👨 Adicionando mensagem do usuário...');
       await ConversaModel.adicionarMensagem(id, 'user', mensagem);
+      recordChatMessage('user', 'success');
 
       // Buscar histórico de mensagens para contexto
       console.log('📋 Buscando histórico...');
@@ -163,6 +165,7 @@ class ChatController {
       // Adicionar resposta da IA
       console.log('💾 Salvando resposta da IA...');
       await ConversaModel.adicionarMensagem(id, 'assistant', respostaIA);
+      recordChatMessage('assistant', 'success');
 
       // Buscar mensagens atualizadas
       console.log('📋 Buscando mensagens atualizadas...');
@@ -177,6 +180,7 @@ class ChatController {
       });
     } catch (error) {
       console.error('❌ Erro ao enviar mensagem:', error);
+      recordChatMessage('system', 'error');
       res.status(500).json({ 
         success: false,
         error: error.message || 'Erro ao enviar mensagem' 

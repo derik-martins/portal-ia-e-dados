@@ -1,5 +1,7 @@
 const InsigniaModel = require('../models/InsigniaModel');
 const { validationResult } = require('express-validator');
+const path = require('path');
+const fs = require('fs');
 
 class InsigniaController {
   // Listar todas as insígnias (admin)
@@ -40,6 +42,36 @@ class InsigniaController {
       });
     } catch (error) {
       console.error('Erro ao buscar insígnia:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
+      });
+    }
+  }
+
+  // Upload de imagem para insígnia (admin)
+  static async uploadImagem(req, res) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'Nenhuma imagem foi enviada'
+        });
+      }
+
+      // Construir URL da imagem
+      const imageUrl = `/uploads/${req.file.filename}`;
+      
+      res.json({
+        success: true,
+        message: 'Imagem enviada com sucesso',
+        data: { 
+          imageUrl,
+          filename: req.file.filename
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao fazer upload da imagem:', error);
       res.status(500).json({
         success: false,
         message: 'Erro interno do servidor'

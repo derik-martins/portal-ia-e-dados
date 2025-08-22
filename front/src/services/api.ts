@@ -602,6 +602,22 @@ class ApiService {
     });
   }
 
+  static async uploadImagemInsignia(imageFile: File): Promise<ApiResponse<{ imageUrl: string; filename: string }>> {
+    const formData = new FormData();
+    formData.append('imagem', imageFile);
+    
+    console.log('Enviando imagem de insígnia:', {
+      name: imageFile.name, 
+      size: imageFile.size, 
+      type: imageFile.type
+    });
+    
+    return this.request<{ imageUrl: string; filename: string }>('/insignias/upload-imagem', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
   static async atualizarInsignia(id: number, dadosInsignia: InsigniaFormData & { ativo?: boolean }): Promise<ApiResponse<{ insignia: Insignia }>> {
     return this.request<{ insignia: Insignia }>(`/insignias/${id}`, {
       method: 'PUT',

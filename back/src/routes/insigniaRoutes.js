@@ -1,8 +1,9 @@
 const express = require('express');
 const { body, param } = require('express-validator');
 const InsigniaController = require('../controllers/InsigniaController');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/authMiddleware');
 const adminMiddleware = require('../middleware/adminMiddleware');
+const upload = require('../middleware/uploadMiddleware');
 
 const router = express.Router();
 
@@ -19,9 +20,7 @@ const insigniaValidation = [
     .withMessage('Descrição deve ter no máximo 1000 caracteres'),
   body('imagem_url')
     .optional()
-    .trim()
-    .isURL()
-    .withMessage('URL da imagem deve ser válida'),
+    .trim(),
   body('pontos')
     .isInt({ min: 0, max: 10000 })
     .withMessage('Pontos deve ser um número inteiro entre 0 e 10000'),
@@ -62,6 +61,7 @@ router.use(authMiddleware);
 router.get('/', adminMiddleware, InsigniaController.listarTodas);
 router.get('/:id', [adminMiddleware, ...idValidation], InsigniaController.buscarPorId);
 router.post('/', [adminMiddleware, ...insigniaValidation], InsigniaController.criar);
+router.post('/upload-imagem', [adminMiddleware, upload.single('imagem')], InsigniaController.uploadImagem);
 router.put('/:id', [adminMiddleware, ...idValidation, ...insigniaValidation], InsigniaController.atualizar);
 router.delete('/:id', [adminMiddleware, ...idValidation], InsigniaController.deletar);
 

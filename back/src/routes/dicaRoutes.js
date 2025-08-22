@@ -1,7 +1,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const DicaController = require('../controllers/DicaController');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -29,13 +29,14 @@ const validacoesDica = [
     .notEmpty()
     .withMessage('Conteúdo é obrigatório')
     .custom((value) => {
-      if (typeof value !== 'object' || !Array.isArray(value.blocks)) {
-        throw new Error('Conteúdo deve ser um objeto JSON válido com propriedade blocks');
+      if (typeof value !== 'object') {
+        throw new Error('Conteúdo deve ser um objeto JSON válido');
       }
-      if (value.blocks.length === 0) {
-        throw new Error('Conteúdo deve ter pelo menos um bloco');
+      // Aceitar tanto array quanto objeto com propriedade blocks
+      if (Array.isArray(value.blocks) || (typeof value.blocks === 'object' && value.blocks !== null)) {
+        return true;
       }
-      return true;
+      throw new Error('Conteúdo deve ter pelo menos um bloco');
     }),
   
   body('tempo_leitura')
@@ -45,23 +46,48 @@ const validacoesDica = [
   
   body('imagem_header')
     .optional()
-    .isURL()
-    .withMessage('URL da imagem do header deve ser válida'),
+    .custom((value) => {
+      // Aceitar string vazia ou URL válida
+      if (value === '' || value === null || value === undefined) {
+        return true;
+      }
+      // Se não for vazio, deve ser uma URL válida
+      const urlRegex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
+      if (urlRegex.test(value)) {
+        return true;
+      }
+      throw new Error('URL da imagem do header deve ser válida');
+    }),
   
   body('tags')
     .optional()
-    .isArray()
-    .withMessage('Tags deve ser um array')
     .custom((tags) => {
-      if (tags.length > 10) {
-        throw new Error('Máximo de 10 tags permitidas');
-      }
-      for (let tag of tags) {
-        if (typeof tag !== 'string' || tag.length < 2 || tag.length > 50) {
-          throw new Error('Cada tag deve ser uma string entre 2 e 50 caracteres');
+      // Se for undefined/null, aceitar
+      if (!tags) return true;
+      
+      // Se for um objeto (como { '0': 'tag1', '1': 'tag2' }), converter para array
+      if (typeof tags === 'object' && !Array.isArray(tags)) {
+        const tagArray = Object.values(tags).filter(tag => tag && typeof tag === 'string');
+        if (tagArray.length > 10) {
+          throw new Error('Máximo de 10 tags permitidas');
         }
+        return true;
       }
-      return true;
+      
+      // Se for array, validar normalmente
+      if (Array.isArray(tags)) {
+        if (tags.length > 10) {
+          throw new Error('Máximo de 10 tags permitidas');
+        }
+        for (let tag of tags) {
+          if (typeof tag !== 'string' || tag.length < 2 || tag.length > 50) {
+            throw new Error('Cada tag deve ser uma string entre 2 e 50 caracteres');
+          }
+        }
+        return true;
+      }
+      
+      throw new Error('Tags deve ser um array ou objeto');
     })
 ];
 

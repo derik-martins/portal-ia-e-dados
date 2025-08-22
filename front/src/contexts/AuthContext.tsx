@@ -8,6 +8,7 @@ interface AuthContextData {
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   updateUser: (userData: User) => void;
+  refreshUserData: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
 }
@@ -89,6 +90,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem('user_data', JSON.stringify(userData));
   };
 
+  const refreshUserData = async () => {
+    if (!token) return;
+    
+    try {
+      const response = await ApiService.getProfile();
+      if (response.success && response.data?.user) {
+        updateUser(response.data.user);
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar dados do usuário:', error);
+    }
+  };
+
   const isAuthenticated = !!user && !!token;
   const isAdmin = user?.role === 'admin';
 
@@ -100,6 +114,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       login,
       logout,
       updateUser,
+      refreshUserData,
       isAuthenticated,
       isAdmin,
     }}>
